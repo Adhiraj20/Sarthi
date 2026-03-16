@@ -120,12 +120,12 @@ export const submitQuiz = async (data, token) => {
 
     return response.data
 
-  } catch (error) {
+  }catch (error) {
 
-    console.log("QUIZ SUBMIT ERROR", error)
+  console.log("QUIZ SUBMIT ERROR", error)
 
-  }
-
+  throw error // ⭐ important
+}
 }
 // Create Quiz (Instructor)
 export const createQuiz = async (data, token) => {
@@ -143,10 +143,11 @@ export const createQuiz = async (data, token) => {
 
     return response.data
 
-  } catch (error) {
+  }catch (error) {
 
-    console.log("QUIZ CREATE ERROR", error)
+  console.log("QUIZ SUBMIT ERROR", error)
 
-  }
+  throw error // ⭐ important
+}
 
 }
