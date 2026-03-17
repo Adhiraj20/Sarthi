@@ -86,5 +86,6 @@ export const quizEndpoints = {
   GET_QUIZZES_BY_SUBJECT_API: BASE_URL + "/api/v1/quiz/by-subject",
   GET_QUIZ_BY_ID_API: BASE_URL + "/api/v1/quiz",
   SUBMIT_QUIZ_API: BASE_URL + "/api/v1/quiz/submit",
-  GET_RESULTS_API: BASE_URL + "/api/v1/quiz/results"
+  GET_RESULTS_API: BASE_URL + "/api/v1/quiz/results",
+  GENERATE_AI_API: BASE_URL + "/api/v1/quiz/generate-ai"
 }

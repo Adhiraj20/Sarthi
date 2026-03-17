@@ -144,7 +144,59 @@ exports.getQuizById = async (req, res) => {
     });
   }
 };
+//generate quiz using ai
+exports.generateAIQuiz = async (req, res) => {
 
+  try {
+
+    const { topic, count } = req.body;
+
+    const prompt = `
+    Generate ${count} MCQ questions on ${topic}.
+    Format JSON:
+    [
+      {
+        "question": "",
+        "options": ["", "", "", ""],
+        "correctAnswer": 0
+      }
+    ]
+    `;
+
+    // ⭐ Replace with Gemini / OpenRouter API
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+
+    const text = data.choices[0].message.content;
+
+    const questions = JSON.parse(text);
+
+    return res.json({
+      success: true,
+      questions
+    });
+
+  } catch (err) {
+
+    console.error("AI ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
 
 // ===============================
 // SUBMIT QUIZ

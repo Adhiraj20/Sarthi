@@ -151,3 +151,22 @@ export const createQuiz = async (data, token) => {
 }
 
 }
+export const generateQuizAI = async (data, token) => {
+  try {
+
+    const response = await apiConnector(
+      "POST",
+      `${quizEndpoints.GENERATE_AI_API}`, // ⭐ use endpoint
+      data,
+      {
+        Authorization: `Bearer ${token}`
+      }
+    )
+
+    return response.data
+
+  } catch (error) {
+    console.log("AI GENERATION ERROR", error)
+    throw error
+  }
+}
