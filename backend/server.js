@@ -16,6 +16,7 @@ const userRoutes = require('./routes/user');
 const profileRoutes = require('./routes/profile');
 const paymentRoutes = require('./routes/payments');
 const courseRoutes = require('./routes/course');
+const newsRoute = require("./routes/newsRoute");
 
 
 // middleware 
@@ -60,6 +61,8 @@ app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/course', courseRoutes);
 app.use('/api/v1/quiz', quizRoutes);
+
+app.use("/api/v1/news", newsRoute);
 
 
 

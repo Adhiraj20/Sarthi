@@ -19,6 +19,7 @@ import { getCatalogPageData } from '../services/operations/pageAndComponentData'
 
 import { MdOutlineRateReview } from 'react-icons/md'
 import { FaArrowRight } from "react-icons/fa"
+import TechNews from "../components/core/HomePage/TechNews";
 
 import { motion } from 'framer-motion'
 import { fadeIn, } from './../components/common/motionFrameVarients';
@@ -158,12 +159,18 @@ const Home = () => {
             <ResumeButton className="bg-black text-cyan-400 hover:bg-white-900" />
 
         </div>
+        
 
 
       {/* ... CHATBOT */}
       <>
       <Sitechat />
     </>
+    <div className="bg-richblack-900 py-12">
+  <div className="w-11/12 max-w-maxContent mx-auto">
+    <TechNews />
+  </div>
+</div>
   
 
 

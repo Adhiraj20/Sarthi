@@ -22,6 +22,6 @@ router.post("/submit", auth, isStudent, submitQuiz);
 router.get("/results", auth, isStudent, getStudentResults);
 router.get("/:id", auth, isStudent, getQuizById);
 router.post("/generate-ai", auth, isInstructor, generateAIQuiz);
-//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
+
 
 module.exports = router;
