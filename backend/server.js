@@ -10,6 +10,9 @@ require('dotenv').config();
 // connection to DB and cloudinary
 const { connectDB } = require('./config/database');
 const { cloudinaryConnect } = require('./config/cloudinary');
+const notesRoutes = require("./routes/notesRoute");
+
+
 
 // routes
 const userRoutes = require('./routes/user');
@@ -62,7 +65,8 @@ app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/course', courseRoutes);
 app.use('/api/v1/quiz', quizRoutes);
 
-app.use("/api/v1/news", newsRoute);
+app.use('/api/v1/news', newsRoute);
+app.use("/api/v1/ai", notesRoutes);
 
 
 

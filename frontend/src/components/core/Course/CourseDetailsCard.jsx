@@ -24,6 +24,8 @@ function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse }) {
     _id: courseId,
   } = course
 
+  const isEnrolled = user?.courses?.includes(courseId);
+
   const handleShare = () => {
     copy(window.location.href)
     toast.success("Link copied to clipboard")
@@ -70,16 +72,16 @@ function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse }) {
             <button
               className="yellowButton outline-none"
               onClick={
-                user && course?.studentsEnrolled.includes(user?._id)
+                isEnrolled
                   ? () => navigate("/dashboard/enrolled-courses")
                   : handleBuyCourse
               }
             >
-              {user && course?.studentsEnrolled.includes(user?._id)
+              {isEnrolled
                 ? "Go To Course"
                 : "Buy Now"}
             </button>
-            {(!user || !course?.studentsEnrolled.includes(user?._id)) && (
+            {!isEnrolled && (
               <button onClick={handleAddToCart} className="blackButton outline-none">
                 Add to Cart
               </button>

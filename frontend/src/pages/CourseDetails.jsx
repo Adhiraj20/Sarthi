@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react"
 import { BiInfoCircle } from "react-icons/bi"
 import { HiOutlineGlobeAlt } from "react-icons/hi"
@@ -136,6 +135,9 @@ function CourseDetails() {
     tag
   } = response?.data?.courseDetails
 
+  // Check if user is enrolled
+  const isEnrolled = user?.courses?.includes(course_id);
+
   // Buy Course handler
   const handleBuyCourse = () => {
     if (token) {
@@ -220,7 +222,11 @@ function CourseDetails() {
             {/* will appear only for small size */}
             <div className="flex w-full flex-col gap-4 border-y border-y-richblack-500 py-4 lg:hidden">
               <p className="space-x-3 pb-4 text-3xl font-semibold text-richblack-5">Rs. {price}</p>
-              <button className="yellowButton" onClick={handleBuyCourse}>Buy Now</button>
+              {isEnrolled ? (
+                <p className="text-green-500 font-semibold text-lg">Enrolled</p>
+              ) : (
+                <button className="yellowButton" onClick={handleBuyCourse}>Buy Now</button>
+              )}
               <button onClick={handleAddToCart} className="blackButton">Add to Cart</button>
             </div>
           </div>

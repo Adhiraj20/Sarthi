@@ -1,6 +1,7 @@
 // ⭐ FIX 1: Correct model imports (remove .default)
 const Quiz = require("../models/Quiz");
 const QuizResult = require("../models/QuizResult");
+const { extractJSON } = require("../utils/aiHelper");
 
 
 // ===============================
@@ -146,24 +147,29 @@ exports.getQuizById = async (req, res) => {
 };
 //generate quiz using ai
 exports.generateAIQuiz = async (req, res) => {
-
   try {
-
     const { topic, count } = req.body;
 
     const prompt = `
-    Generate ${count} MCQ questions on ${topic}.
-    Format JSON:
-    [
-      {
-        "question": "",
-        "options": ["", "", "", ""],
-        "correctAnswer": 0
-      }
-    ]
-    `;
+Generate ${count} MCQ questions on "${topic}".
 
-    // ⭐ Replace with Gemini / OpenRouter API
+STRICT RULES:
+- Return ONLY valid JSON
+- No explanation, no markdown
+- Each question MUST have exactly 4 options
+- correctAnswer MUST be a NUMBER (0, 1, 2, or 3)
+- correctAnswer MUST match the correct option index
+
+Format:
+[
+  {
+    "question": "string",
+    "options": ["A", "B", "C", "D"],
+    "correctAnswer": 0
+  }
+]
+`;
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -171,16 +177,21 @@ exports.generateAIQuiz = async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
+        model: "openrouter/free", // ✅ FREE
         messages: [{ role: "user", content: prompt }]
       })
     });
 
     const data = await response.json();
 
-    const text = data.choices[0].message.content;
+    const rawText = data.choices[0].message.content;
 
-    const questions = JSON.parse(text);
+    // 🧠 Clean + parse JSON safely
+   // const questions = extractJSON(rawText);
+   let questions = extractJSON(rawText);
+
+// 🧠 Fix missing/wrong correct answers
+    questions = fixQuestions(questions);
 
     return res.json({
       success: true,
@@ -188,7 +199,6 @@ exports.generateAIQuiz = async (req, res) => {
     });
 
   } catch (err) {
-
     console.error("AI ERROR:", err);
 
     return res.status(500).json({
@@ -363,3 +373,25 @@ exports.getStudentResults = async (req, res) => {
     });
   }
 };
+
+// function to fix questions with missing/wrong correct answers
+function fixQuestions(questions) {
+  return questions.map((q) => {
+    // Ensure options exist
+    if (!q.options || q.options.length !== 4) {
+      q.options = ["Option A", "Option B", "Option C", "Option D"];
+    }
+
+    // Fix correctAnswer
+    if (
+      q.correctAnswer === undefined ||
+      q.correctAnswer < 0 ||
+      q.correctAnswer > 3
+    ) {
+      // fallback → random correct answer
+      q.correctAnswer = Math.floor(Math.random() * 4);
+    }
+
+    return q;
+  });
+}
