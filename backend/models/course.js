@@ -61,7 +61,20 @@ const courseSchema = new mongoose.Schema({
     ,
     updatedAt: {
         type: Date,
-    }
+    },
+    isLive: {
+  type: Boolean,
+  default: false,
+},
+
+isLive: {
+  type: Boolean,
+  default: false,
+},
+    liveRoomId: {
+  type: String,
+  default: null,
+}
 
 });
 

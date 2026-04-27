@@ -43,10 +43,13 @@ import { HiArrowNarrowUp } from "react-icons/hi"
 import CreateCategory from "./components/core/Dashboard/CreateCategory";
 import AllStudents from './components/core/Dashboard/AllStudents';
 import AllInstructors from './components/core/Dashboard/AllInstructors';
+import CommunityHub from "./components/core/Dashboard/CommunityHub";
+import PostReports from "./components/core/Dashboard/PostReports";
 
 import Quiz from "./pages/Quiz";
 import AttemptQuiz from "./components/core/Quiz/AttemptQuiz";
 import Sitechat from "./components/common/Sitechat";
+import LiveClass from "./pages/LiveClass";
 function App() {
 
   const { user } = useSelector((state) => state.profile)
@@ -154,6 +157,7 @@ function App() {
         >
           <Route path="dashboard/my-profile" element={<MyProfile />} />
           <Route path="dashboard/Settings" element={<Settings />} />
+          <Route path="dashboard/community" element={<CommunityHub />} />
 
           {/* Route only for Admin */}
           {/* create category, all students, all instructors */}
@@ -162,6 +166,7 @@ function App() {
               <Route path="dashboard/create-category" element={<CreateCategory />} />
               <Route path="dashboard/all-students" element={<AllStudents />} />
               <Route path="dashboard/all-instructors" element={<AllInstructors />} />
+              <Route path="dashboard/post-reports" element={<PostReports />} />
             </>
           )}
 
@@ -210,8 +215,8 @@ function App() {
           )}
         </Route>
 
-
-
+{/* Live Class Route */}
+       <Route path="/live-class/:roomId" element={<LiveClass />} />
 
         {/* Page Not Found (404 Page ) */}
         <Route path="*" element={<PageNotFound />} />

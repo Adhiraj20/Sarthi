@@ -11,6 +11,7 @@ const {
   extractJSON,
   fixQuestions: validateQuestions,
 } = require("../utils/aiHelper");
+const { sendNotifications } = require("../utils/notificationSender");
 
 const DEFAULT_TEST_DURATION_SECONDS = 10 * 60;
 
@@ -150,6 +151,21 @@ const createTest = async (req, res) => {
       questions: validatedQuestions,
       createdBy: req.user.id,
     });
+
+    const course = await Course.findById(courseId).select("courseName");
+    const usersToNotify = await User.find(
+      { _id: { $ne: req.user.id } },
+      "_id"
+    );
+
+    await sendNotifications(
+      usersToNotify.map((user) => user._id),
+      {
+        message: `A new test "${test.title}" has been added${course?.courseName ? ` for ${course.courseName}` : ""}.`,
+        link: `/quiz/${courseId}`,
+        type: "test",
+      }
+    );
 
     return res.status(201).json({
       success: true,

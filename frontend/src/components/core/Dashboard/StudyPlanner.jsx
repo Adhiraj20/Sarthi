@@ -1,8 +1,81 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import mermaid from "mermaid";
 
 const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 const LEVELS = ["beginner", "intermediate", "advanced"];
+
+// Initialize mermaid
+mermaid.initialize({ startOnLoad: true, theme: "dark", securityLevel: "loose" });
+
+// ── Mermaid Graph Viewer ────────────────────────────────────────────────────
+function MermaidGraphViewer({ mermaidCode }) {
+  const [svgContent, setSvgContent] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!mermaidCode) return;
+
+    const renderDiagram = async () => {
+      try {
+        setError(null);
+        console.log("Raw mermaid code:", mermaidCode.substring(0, 100));
+        
+        // Extract the content between ```mermaid and ```
+        let cleanCode = mermaidCode;
+        const match = mermaidCode.match(/```mermaid\n([\s\S]*?)\n```/);
+        if (match) {
+          cleanCode = match[1];
+        } else {
+          // Try without the backticks
+          cleanCode = mermaidCode.replace(/```mermaid\n?/g, "").replace(/\n?```/g, "").trim();
+        }
+        
+        console.log("Extracted code:", cleanCode.substring(0, 150));
+        
+        // Validate basic mermaid syntax
+        if (!cleanCode.includes("graph") && !cleanCode.includes("flowchart")) {
+          throw new Error("Invalid mermaid syntax - missing graph or flowchart keyword");
+        }
+        
+        const { svg } = await mermaid.render("mermaid-diagram-" + Date.now(), cleanCode);
+        console.log("SVG rendered successfully");
+        setSvgContent(svg);
+      } catch (err) {
+        console.error("Mermaid render error:", err.message);
+        console.error("Full error:", err);
+        setError("Failed to render graph: " + err.message);
+      }
+    };
+
+    renderDiagram();
+  }, [mermaidCode]);
+
+  if (error) {
+    return (
+      <div className="bg-richblack-800 border-l-4 border-pink-500 rounded-r-xl p-6 text-richblack-200">
+        <p className="text-sm text-pink-300 mb-2">⚠️ {error}</p>
+        <details className="text-xs text-richblack-400 mt-2 bg-richblack-900 p-2 rounded">
+          <summary>Debug Info</summary>
+          <pre className="mt-2 overflow-auto max-h-40">{mermaidCode?.substring(0, 300)}</pre>
+        </details>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-richblack-900 border border-richblack-700 rounded-xl p-6 overflow-x-auto">
+      {svgContent ? (
+        <div dangerouslySetInnerHTML={{ __html: svgContent }} className="flex justify-center" />
+      ) : (
+        <div className="flex items-center justify-center h-32 text-richblack-400">
+          <span className="h-5 w-5 rounded-full border-2 border-yellow-50 border-t-transparent animate-spin mr-3" />
+          Generating visualization...
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── JSON Week card renderer ──────────────────────────────────────────────────
 function PlanDisplay({ plan, planId, token, setPlan, onRegenerate }) {
@@ -183,6 +256,9 @@ export default function StudyPlanner() {
   const [adaptMessage, setAdaptMessage] = useState("");
   const [adapting, setAdapting] = useState(false);
 
+  const [mermaidGraph, setMermaidGraph] = useState(null);
+  const [loadingGraph, setLoadingGraph] = useState(false);
+
   // Fetch past roadmaps on mount
   useEffect(() => {
     async function fetchMyPlans() {
@@ -259,6 +335,46 @@ export default function StudyPlanner() {
       alert("Failed to adapt plan");
     } finally {
       setAdapting(false);
+    }
+  }
+
+  async function handleGenerateGraph() {
+    if (!activePlanId) {
+      alert("No active plan selected");
+      return;
+    }
+    setLoadingGraph(true);
+    setMermaidGraph(null);
+    try {
+      console.log("Calling API with planId:", activePlanId);
+      const res = await fetch(`${BASE_URL}/api/study-plan/${activePlanId}/mermaid-graph`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+      });
+      
+      console.log("Response status:", res.status);
+      const text = await res.text();
+      console.log("Response text:", text.substring(0, 200));
+      
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        console.error("JSON parse error:", parseErr);
+        throw new Error("Server returned invalid response: " + text.substring(0, 100));
+      }
+      
+      if (!data.success) throw new Error(data.message || "Failed to generate graph");
+      
+      setMermaidGraph(data.mermaidGraph);
+    } catch (err) {
+      console.error("Graph generation error:", err);
+      alert("Error: " + err.message);
+    } finally {
+      setLoadingGraph(false);
     }
   }
 
@@ -456,6 +572,29 @@ export default function StudyPlanner() {
                 {adapting ? "Adapting..." : "Update Plan"}
               </button>
             </form>
+          </div>
+
+          {/* ── Mermaid Graph Section ── */}
+          <div className="mt-8 bg-richblack-800 border-l-4 border-pink-400 rounded-r-xl px-6 py-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-md font-bold text-richblack-5">Study Roadmap Visualization</h3>
+                <p className="text-sm text-richblack-300 mt-1">See your study plan as an interactive flowchart</p>
+              </div>
+              <button 
+                onClick={handleGenerateGraph}
+                disabled={loadingGraph}
+                className="shrink-0 rounded-lg bg-pink-400 px-6 py-2.5 text-sm font-semibold text-richblack-900 hover:bg-pink-500 disabled:opacity-50 transition"
+              >
+                {loadingGraph ? "Generating..." : "📊 Generate Graph"}
+              </button>
+            </div>
+            
+            {mermaidGraph && (
+              <div className="mt-6 bg-richblack-900 rounded-lg p-4 border border-richblack-700">
+                <MermaidGraphViewer mermaidCode={mermaidGraph} />
+              </div>
+            )}
           </div>
         </div>
       )}

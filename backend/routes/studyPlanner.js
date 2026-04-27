@@ -4,6 +4,8 @@ const {
   adaptExistingStudyPlan,
   updateStudyPlanProgress,
 } = require("../services/studyPlannerService");
+const { generateMermaidStudyGraph } = require("../services/aiService");
+const StudyPlan = require("../models/studyPlan");
 
 const router = express.Router();
 
@@ -95,6 +97,46 @@ router.post("/study-plan/:id/adapt", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Could not adapt study plan",
+    });
+  }
+});
+
+router.post("/study-plan/:id/mermaid-graph", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("Mermaid graph request for plan ID:", id);
+    
+    const studyPlan = await StudyPlan.findById(id);
+    console.log("Study plan found:", !!studyPlan);
+
+    if (!studyPlan) {
+      return res.status(404).json({
+        success: false,
+        message: "Study plan not found",
+      });
+    }
+
+    console.log("Generating mermaid graph...");
+    const mermaidGraph = await generateMermaidStudyGraph(studyPlan.plan, {
+      goal: studyPlan.goal,
+      duration: studyPlan.duration,
+      dailyHours: studyPlan.dailyHours,
+      level: studyPlan.level,
+      weaknesses: studyPlan.weaknesses,
+    });
+
+    console.log("Graph generated successfully");
+    return res.json({
+      success: true,
+      planId: id,
+      mermaidGraph,
+    });
+  } catch (error) {
+    console.error("Mermaid graph generation error:", error.message);
+    console.error("Stack:", error.stack);
+    return res.status(500).json({
+      success: false,
+      message: "Could not generate visualization: " + error.message,
     });
   }
 });

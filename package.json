@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "fuse.js": "^7.1.0"
+    "fuse.js": "^7.1.0",
+    "mermaid": "^11.14.0"
   }
 }

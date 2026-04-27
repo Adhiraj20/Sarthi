@@ -11,6 +11,7 @@ import MobileProfileDropDown from '../core/Auth/MobileProfileDropDown'
 
 import { AiOutlineShoppingCart } from "react-icons/ai"
 import { MdKeyboardArrowDown } from "react-icons/md"
+import NotificationBell from "./NotificationBell"
 
 
 
@@ -162,6 +163,7 @@ const Navbar = () => {
                             </Link>
                         )
                     }
+                    {token !== null && <NotificationBell token={token} />}
                     {
                         token === null && (
                             <Link to="/login">

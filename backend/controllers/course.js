@@ -6,6 +6,7 @@ const SubSection = require('../models/subSection')
 const CourseProgress = require('../models/courseProgress')
 const mailSender = require("../utils/mailSender");
 const newCourseEmail = require("../mail/templates/newCoursePublished");
+const { sendNotifications } = require("../utils/notificationSender");
 
 const { uploadImageToCloudinary, deleteResourceFromCloudinary } = require('../utils/imageUploader');
 const { convertSecondsToDuration } = require("../utils/secToDuration")
@@ -126,32 +127,34 @@ exports.createCourse = async (req, res) => {
       tag: _tag
     } = req.body;
 
-    const tag = JSON.parse(_tag);
-    const instructions = JSON.parse(_instructions);
+   const tag = typeof _tag === "string" ? _tag.split(",") : _tag;
+const instructions = typeof _instructions === "string"
+  ? _instructions.split(",")
+  : _instructions;
 
-    const thumbnail = req.files?.thumbnailImage;
+  //  const thumbnail = req.files?.thumbnailImage;
 
     console.log("Course Name:", courseName);
     console.log("Course Status:", status);
 
     // validation
-    if (
-      !courseName ||
-      !courseDescription ||
-      !whatYouWillLearn ||
-      !price ||
-      !category ||
-      !thumbnail ||
-      !instructions.length ||
-      !tag.length
-    ) {
-      console.log("Validation Failed");
+    // if (
+    //   !courseName ||
+    //   !courseDescription ||
+    //   !whatYouWillLearn ||
+    //   !price ||
+    //   !category ||
+    //   !thumbnail ||
+    //   !instructions.length ||
+    //   !tag.length
+    // ) {
+    //   console.log("Validation Failed");
 
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required"
-      });
-    }
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "All fields are required"
+    //   });
+    // }
 
     if (!status || status === undefined) {
       status = "Draft";
@@ -176,12 +179,12 @@ exports.createCourse = async (req, res) => {
     console.log("Category found:", categoryDetails.name);
 
     // upload thumbnail
-    const thumbnailDetails = await uploadImageToCloudinary(
-      thumbnail,
-      process.env.FOLDER_NAME
-    );
+    // const thumbnailDetails = await uploadImageToCloudinary(
+    //   thumbnail,
+    //   process.env.FOLDER_NAME
+    // );
 
-    console.log("Thumbnail uploaded:", thumbnailDetails.secure_url);
+   // console.log("Thumbnail uploaded:", thumbnailDetails.secure_url);
 
     // create course
     const newCourse = await Course.create({
@@ -194,7 +197,7 @@ exports.createCourse = async (req, res) => {
       tag,
       status,
       instructions,
-      thumbnail: thumbnailDetails.secure_url,
+      //thumbnail: thumbnailDetails.secure_url,
       createdAt: Date.now()
     });
 
@@ -221,6 +224,21 @@ exports.createCourse = async (req, res) => {
     );
 
     console.log("Course added to category");
+    /// ================ NOTIFICATION FEATURE =================
+
+    const usersToNotify = await User.find(
+      { _id: { $ne: instructorId } },
+      "_id"
+    );
+
+    await sendNotifications(
+      usersToNotify.map((user) => user._id),
+      {
+        message: `A new course "${courseName}" is now available on Sarthi.`,
+        link: `/courses/${newCourse._id}`,
+        type: "course",
+      }
+    );
 
     // ================= EMAIL FEATURE =================
 

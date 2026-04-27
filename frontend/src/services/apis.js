@@ -93,3 +93,21 @@ export const quizEndpoints = {
   GET_RESULTS_API: BASE_URL + "/api/v1/test/results",
   DELETE_TEST_API: BASE_URL + "/api/v1/test",
 }
+
+export const notificationEndpoints = {
+  GET_NOTIFICATIONS_API: BASE_URL + "/api/v1/notifications",
+  MARK_NOTIFICATION_READ_API: BASE_URL + "/api/v1/notifications",
+  MARK_ALL_NOTIFICATIONS_READ_API: BASE_URL + "/api/v1/notifications/read-all",
+  SEND_NOTIFICATION_API: BASE_URL + "/api/v1/notification/send",
+}
+
+export const postEndpoints = {
+  GET_ALL_POSTS_API: BASE_URL + "/api/v1/post",
+  CREATE_POST_API: BASE_URL + "/api/v1/post/create",
+  LIKE_POST_API: BASE_URL + "/api/v1/post/like",
+  COMMENT_POST_API: BASE_URL + "/api/v1/post/comment",
+  DELETE_POST_API: BASE_URL + "/api/v1/post/delete",
+  REPORT_POST_API: BASE_URL + "/api/v1/post/report",
+  GET_POST_REPORTS_API: BASE_URL + "/api/v1/post/reports",
+  UPDATE_POST_REPORT_STATUS_API: BASE_URL + "/api/v1/post/reports",
+}

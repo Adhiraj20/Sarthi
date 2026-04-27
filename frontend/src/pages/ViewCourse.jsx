@@ -9,13 +9,10 @@ import { getFullDetailsOfCourse } from "../services/operations/courseDetailsAPI"
 import {
   setCompletedLectures,
   setCourseSectionData,
-  setEntireCourseData,
   setTotalNoOfLectures,
 } from "../slices/viewCourseSlice"
 
 import { setCourseViewSidebar } from "../slices/sidebarSlice"
-
-// ⭐ QUIZ API
 import { fetchQuizByCourse } from "../services/operations/quizAPI"
 
 export default function ViewCourse() {
@@ -26,40 +23,62 @@ export default function ViewCourse() {
   const navigate = useNavigate()
 
   const [reviewModal, setReviewModal] = useState(false)
-
-  // ⭐ NEW STATE → check if quiz exists
   const [quizAvailable, setQuizAvailable] = useState(false)
 
+  // 🔥 FINAL: local state only
+  const [course, setCourse] = useState(null)
 
-  // get Full Details Of Course
-  useEffect(() => {
+  // 🔥 DIRECT FETCH FUNCTION
+  const fetchCourse = async () => {
+    try {
+      const res = await getFullDetailsOfCourse(courseId, token)
 
-    ; (async () => {
+      console.log("🔥 RAW RESPONSE:", res)
 
-      const courseData = await getFullDetailsOfCourse(courseId, token)
+      // ⚠️ VERY IMPORTANT: your API shape
+      const courseData =
+        res?.courseDetails ||
+        res?.data?.courseDetails ||
+        res?.data?.data?.courseDetails
 
-      dispatch(setCourseSectionData(courseData.courseDetails.courseContent))
-      dispatch(setEntireCourseData(courseData.courseDetails))
-      dispatch(setCompletedLectures(courseData.completedVideos))
+      console.log("📦 Extracted Course:", courseData)
+
+      if (!courseData) {
+        console.log("❌ Course still undefined")
+        return
+      }
+
+      setCourse(courseData)
+
+      // optional redux for sidebar only
+      dispatch(setCourseSectionData(courseData.courseContent || []))
+      dispatch(setCompletedLectures(res?.completedVideos || []))
 
       let lectures = 0
-
-      courseData?.courseDetails?.courseContent?.forEach((sec) => {
+      courseData?.courseContent?.forEach((sec) => {
         lectures += sec.subSection.length
       })
 
       dispatch(setTotalNoOfLectures(lectures))
 
-      // ⭐ CHECK IF QUIZ EXISTS
-      const quizData = await fetchQuizByCourse(courseId, token)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
-      if (quizData?.quiz) {
-        setQuizAvailable(true)
-      }
+  // 🔁 INITIAL LOAD
+  useEffect(() => {
+    fetchCourse()
+  }, [courseId])
 
-    })()
+  // 🔁 POLLING (REALTIME UPDATE)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchCourse()
+    }, 3000)
 
-  }, [courseId, token, dispatch])
+    return () => clearInterval(interval)
+  }, [courseId])
 
 
   // sidebar logic
@@ -67,25 +86,18 @@ export default function ViewCourse() {
   const [screenSize, setScreenSize] = useState(undefined)
 
   useEffect(() => {
-
     const handleScreenSize = () => setScreenSize(window.innerWidth)
-
     window.addEventListener('resize', handleScreenSize)
     handleScreenSize()
-
     return () => window.removeEventListener('resize', handleScreenSize)
-
   })
 
-
   useEffect(() => {
-
     if (screenSize <= 640) {
       dispatch(setCourseViewSidebar(false))
     } else {
       dispatch(setCourseViewSidebar(true))
     }
-
   }, [screenSize])
 
 
@@ -93,12 +105,34 @@ export default function ViewCourse() {
     <>
       <div className="relative flex min-h-[calc(100vh-3.5rem)] ">
 
-        {/* sidebar */}
         {courseViewSidebar && (
           <VideoDetailsSidebar setReviewModal={setReviewModal} />
         )}
 
-        <div className="h-[calc(100vh-3.5rem)] flex-1 overflow-auto mt-14" id="view-course-scroll-container">
+        <div className="h-[calc(100vh-3.5rem)] flex-1 overflow-auto mt-14">
+
+          {/* 🎥 LIVE CLASS BUTTON */}
+          <div className="flex justify-end mr-6 mt-4">
+
+            {console.log("🧠 FINAL CHECK:", course?.isLive)}
+
+            {course?.isLive === true || course?.isLive === "true" ? (
+              <button
+                onClick={() => {
+                  console.log("🚀 Joining room:", course?.liveRoomId)
+                  navigate(`/live-class/${course?.liveRoomId}`)
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                Join Live Class 🎥
+              </button>
+            ) : (
+              <p className="text-yellow-400 font-medium">
+                Instructor has not started the class ⏳
+              </p>
+            )}
+
+          </div>
 
           <div className="mx-6 mt-6">
             <Outlet />

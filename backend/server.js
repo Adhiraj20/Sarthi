@@ -17,6 +17,19 @@ const profileRoutes = require('./routes/profile');
 const paymentRoutes = require('./routes/payments');
 const courseRoutes = require('./routes/course');
 const studyPlanner = require("./routes/studyPlanner");
+const notesRoutes = require("./routes/notesRoute");
+const liveClassRoutes = require("./routes/liveClass");
+const postRoutes = require("./routes/postRoute");
+const recommendationRoutes = require("./routes/recommendationRoutes");
+const publicRoutes = require("./routes/publicRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+
+
+
+
+
+
+
 
 
 // middleware 
@@ -37,7 +50,7 @@ app.use(
 )
 
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const chatRoute = require("./routes/chatRoute");
 app.use("/api/chat", chatRoute);
@@ -61,6 +74,13 @@ app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/course', courseRoutes);
 app.use('/api/v1/test', testRoutes);
+app.use("/api/v1/ai", notesRoutes);
+app.use("/api/v1/live-class", liveClassRoutes);
+app.use("/api/v1/post", postRoutes);
+app.use("/api/v1", recommendationRoutes);
+app.use("/api/v1", publicRoutes);
+app.use("/api/v1", notificationRoutes);
+
 
 
 

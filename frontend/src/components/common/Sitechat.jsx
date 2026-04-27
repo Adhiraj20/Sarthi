@@ -4,7 +4,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-
+import chatBotIcon from "../../assets/chat-bot.png";
+// or correct relative path from file location
 // ── helpers ──────────────────────────────────────────────
 const STORAGE_KEY = "all_chats";
 
@@ -164,12 +165,21 @@ export default function SiteChat() {
     <div className="fixed bottom-5 right-5 z-50">
       {/* Toggle Button */}
       {!open && (
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg"
-          onClick={() => setOpen(true)}
-        >
-          Chat
-        </button>
+       <button
+  className="bg-blue-600 w-14 h-14 rounded-full shadow-lg flex items-center justify-center"
+  onClick={() => {
+    setOpen(true);
+    playOpenSound();
+    setInput("How can I help you?");
+  }}
+  aria-label="Open chatbot"
+>
+  <img
+    src="/chat-bot.png"
+    alt="Chat bot"
+    className="w-full h-full object-cover rounded-full"
+  />
+</button>
       )}
 
       {/* Chat Window */}
