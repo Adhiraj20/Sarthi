@@ -3,64 +3,53 @@ function generateFallbackMermaidGraph(studyPlan = {}, metadata = {}) {
   const goal = (metadata.goal || "Study Goal").substring(0, 30).replace(/['"]/g, "");
   const weaknesses = metadata.weaknesses || [];
 
-  let lines = [];
-  lines.push('```mermaid');
-  lines.push('graph TD');
-  lines.push(`    START["🚀 START: ${goal}"]:::start`);
+  const lines = [];
+  lines.push("```mermaid");
+  lines.push("graph TD");
 
-  // Collect node and edge lines separately
-  const nodeLines = [];
-  const edgeLines = [];
+  // START node
+  lines.push(`    START["🚀 ${goal}"]:::startNode`);
 
-  // Add week nodes and edges
+  let prevNodeId = "START";
+
   weeks.forEach((week, idx) => {
     const weekNum = week.week || idx + 1;
-    const weekLabel = `📚 Week ${weekNum}`;
     const weekNodeId = `W${weekNum}`;
-    nodeLines.push(`    ${weekNodeId}["${weekLabel}"]`);
 
-    // Connect to previous week or start
-    if (idx === 0) {
-      edgeLines.push(`    START --> ${weekNodeId}`);
-    } else {
-      const prevWeek = weeks[idx - 1];
-      const prevWeekNum = prevWeek.week || idx;
-      edgeLines.push(`    W${prevWeekNum} --> ${weekNodeId}`);
-    }
+    // Week node + edge from previous
+    lines.push(`    ${weekNodeId}["📚 Week ${weekNum}"]`);
+    lines.push(`    ${prevNodeId} --> ${weekNodeId}`);
 
-    // Add 1-2 topics per week
-    if (week.days && week.days.length > 0) {
-      week.days.slice(0, 2).forEach((day, dayIdx) => {
-        const topic = (day.topic || "Topic").substring(0, 25).replace(/['"]/g, "");
-        const dayId = `D${weekNum}_${dayIdx}`;
-        // Check if this is a weakness topic
-        const isWeakness = weaknesses.some((w) =>
-          day.topic?.toLowerCase().includes(w.toLowerCase())
-        );
-        nodeLines.push(`    ${dayId}["${topic}"]${isWeakness ? ":::weakness" : ":::strength"}`);
-        edgeLines.push(`    ${weekNodeId} --> ${dayId}`);
-      });
-    }
+    // Topic nodes (max 2 per week)
+    const days = Array.isArray(week.days) ? week.days.slice(0, 2) : [];
+    days.forEach((day, dayIdx) => {
+      const topic = (day.topic || "Topic").substring(0, 25).replace(/['"]/g, "");
+      const topicNodeId = `T${weekNum}_${dayIdx}`;
+      const isWeakness = weaknesses.some(
+        (w) => day.topic?.toLowerCase().includes(w.toLowerCase())
+      );
+      const styleClass = isWeakness ? ":::weakNode" : ":::strongNode";
+
+      lines.push(`    ${topicNodeId}["${topic}"]${styleClass}`);
+      lines.push(`    ${weekNodeId} --> ${topicNodeId}`);
+    });
+
+    prevNodeId = weekNodeId;
   });
 
-  // End node (define before any edge points to it)
-  nodeLines.push(`    END["✅ COMPLETION"]:::end`);
-  // Edge from last week to END
-  const lastWeekNum = weeks.length > 0 ? (weeks[weeks.length - 1].week || weeks.length) : 1;
-  edgeLines.push(`    W${lastWeekNum} --> END`);
+  // FINISH node + final edge
+  lines.push(`    FINISH["✅ COMPLETION"]:::finishNode`);
+  lines.push(`    ${prevNodeId} --> FINISH`);
 
-  // Add all node lines, then all edge lines
-  lines = lines.concat(nodeLines);
-  lines = lines.concat(edgeLines);
+  // Class definitions - avoid ALL Mermaid reserved words (end, start, graph, etc.)
+  lines.push("    classDef strongNode fill:#90EE90,stroke:#2d5016,color:#000,stroke-width:2px");
+  lines.push("    classDef weakNode fill:#FFD700,stroke:#b8860b,color:#000,stroke-width:2px");
+  lines.push("    classDef startNode fill:#32CD32,stroke:#006400,color:#fff,stroke-width:3px");
+  lines.push("    classDef finishNode fill:#FF6347,stroke:#8B0000,color:#fff,stroke-width:3px");
 
-  // Add class definitions
-  lines.push('    classDef strength fill:#90EE90,stroke:#2d5016,color:#000,stroke-width:2px');
-  lines.push('    classDef weakness fill:#FFD700,stroke:#b8860b,color:#000,stroke-width:2px');
-  lines.push('    classDef start fill:#32CD32,stroke:#006400,color:#fff,stroke-width:3px');
-  lines.push('    classDef end fill:#FF6347,stroke:#8B0000,color:#fff,stroke-width:3px');
-  lines.push('```');
+  lines.push("```");
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 module.exports = { generateFallbackMermaidGraph };

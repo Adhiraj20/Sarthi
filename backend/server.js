@@ -23,14 +23,8 @@ const postRoutes = require("./routes/postRoute");
 const recommendationRoutes = require("./routes/recommendationRoutes");
 const publicRoutes = require("./routes/publicRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-
-
-
-
-
-
-
-
+const chatRoute = require("./routes/chatRoute");
+const testRoutes = require("./routes/testRoute.js");
 
 // middleware 
 app.use(express.json()); // to parse json body
@@ -52,23 +46,7 @@ app.use(
 
 const PORT = process.env.PORT || 5001;
 
-const chatRoute = require("./routes/chatRoute");
-app.use("/api/chat", chatRoute);
-app.use("/api", studyPlanner);
-
-const testRoutes = require("./routes/testRoute.js");
-
-
-
-app.listen(PORT, () => {
-    console.log(`Server Started on PORT ${PORT}`);
-});
-
-// connections
-connectDB();
-cloudinaryConnect();
-
-// mount route
+// mount routes
 app.use('/api/v1/auth', userRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/payment', paymentRoutes);
@@ -80,10 +58,24 @@ app.use("/api/v1/post", postRoutes);
 app.use("/api/v1", recommendationRoutes);
 app.use("/api/v1", publicRoutes);
 app.use("/api/v1", notificationRoutes);
+app.use("/api/v1/chat", chatRoute);
+app.use("/api/v1/planner", studyPlanner);
 
+// Connections and Server Startup
+const startServer = async () => {
+    try {
+        await connectDB();
+        await cloudinaryConnect();
+        app.listen(PORT, () => {
+            console.log(`Server Started on PORT ${PORT}`);
+        });
+    } catch (error) {
+        console.error("Critical error during startup:", error);
+        process.exit(1);
+    }
+};
 
-
-
+startServer();
 
 // Default Route
 app.get('/', (req, res) => {

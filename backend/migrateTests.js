@@ -10,10 +10,7 @@ const Course = require("./models/course");
 
 async function runMigration() {
   try {
-    await mongoose.connect(dbURL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(dbURL);
     console.log("Connected to MongoDB");
 
     const tests = await Test.find({ sectionId: { $exists: false } });
@@ -36,7 +33,7 @@ async function runMigration() {
   } catch (err) {
     console.error("Migration error:", err);
   } finally {
-    mongoose.disconnect();
+    await mongoose.disconnect();
   }
 }
 
